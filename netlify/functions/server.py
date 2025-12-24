@@ -1,5 +1,5 @@
 """
-Netlify Function entry point - __main__.py
+Netlify serverless function untuk Flask app
 """
 import sys
 import os
@@ -20,14 +20,12 @@ try:
         """Handler untuk Netlify Functions"""
         try:
             # Pastikan path di-extract dengan benar dari event
-            # Netlify menyediakan path di event['path']
+            # Netlify menyediakan path di event['path'] atau event['rawPath']
             if 'path' not in event:
-                # Jika path tidak ada, gunakan rawPath atau pathParameters
                 if 'rawPath' in event:
                     event['path'] = event['rawPath']
-                elif 'pathParameters' in event and event['pathParameters']:
-                    # Jika menggunakan path parameters
-                    event['path'] = event.get('requestContext', {}).get('http', {}).get('path', '/')
+                elif 'requestContext' in event and 'http' in event['requestContext']:
+                    event['path'] = event['requestContext']['http'].get('path', '/')
                 else:
                     event['path'] = '/'
             
@@ -57,7 +55,8 @@ except ImportError as e:
             'headers': {'Content-Type': 'application/json'},
             'body': json.dumps({
                 'error': f'Import error: {str(e)}',
-                'message': 'Failed to import Flask app or serverless-wsgi'
+                'message': 'Failed to import Flask app or serverless-wsgi',
+                'hint': 'Make sure all dependencies are installed in netlify/functions/requirements.txt'
             })
         }
 
