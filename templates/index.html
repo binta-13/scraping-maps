@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Maps Scraper</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        
+        .form-container {
+            padding: 40px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 1.1em;
+        }
+        
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+        
+        input[type="text"]:focus,
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .results-container {
+            padding: 40px;
+            display: none;
+        }
+        
+        .results-container.show {
+            display: block;
+        }
+        
+        .summary {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .summary h2 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .result-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .result-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-color: #667eea;
+        }
+        
+        .result-card h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+        
+        .rating {
+            display: inline-block;
+            background: #ffc107;
+            color: #333;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .info {
+            color: #666;
+            margin: 5px 0;
+            font-size: 0.9em;
+        }
+        
+        .error {
+            background: #ff6b6b;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+        
+        .loading.show {
+            display: block;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🗺️ Google Maps Scraper</h1>
+            <p>Scraping data tempat dari Google Maps secara dinamis</p>
+        </div>
+        
+        <div class="form-container">
+            <form id="scrapeForm" method="POST" action="/api/scrape-form">
+                <div class="form-group">
+                    <label for="query">Kata Kunci Pencarian:</label>
+                    <input type="text" id="query" name="query" 
+                           placeholder="Contoh: kedai kopi, restoran, hotel" 
+                           value="{{ query if query else '' }}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="location">Lokasi:</label>
+                    <input type="text" id="location" name="location" 
+                           placeholder="Contoh: Jogja, Yogyakarta, Jakarta" 
+                           value="{{ location if location else '' }}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="min_rating">Rating Minimum:</label>
+                    <input type="number" id="min_rating" name="min_rating" 
+                           step="0.1" min="0" max="5" 
+                           value="{{ min_rating if min_rating else 0 }}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="max_results">Maksimal Hasil (0 = semua):</label>
+                    <input type="number" id="max_results" name="max_results" 
+                           min="0" max="500" 
+                           value="{{ max_results if max_results else 100 }}" required>
+                    <small style="color: #666; font-size: 0.9em;">Masukkan 0 untuk mengambil semua hasil yang tersedia</small>
+                </div>
+                
+                <button type="submit" class="btn">🔍 Mulai Scraping</button>
+            </form>
+            
+            {% if error %}
+            <div class="error">
+                <strong>Error:</strong> {{ error }}
+            </div>
+            {% endif %}
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Sedang melakukan scraping... Mohon tunggu</p>
+            </div>
+        </div>
+        
+        {% if results %}
+        <div class="results-container show">
+            <div class="summary">
+                <h2>📊 Hasil Pencarian</h2>
+                <p>Ditemukan <strong>{{ total }}</strong> tempat dengan rating ≥ {{ min_rating }}</p>
+                <p><strong>Query:</strong> {{ query }} di {{ location }}</p>
+                {% if max_results and max_results > 0 %}
+                <p><strong>Maksimal hasil:</strong> {{ max_results }}</p>
+                {% else %}
+                <p><strong>Maksimal hasil:</strong> Semua yang tersedia</p>
+                {% endif %}
+            </div>
+            
+            <div class="results-grid">
+                {% for result in results %}
+                <div class="result-card">
+                    <h3>{{ result.name }}</h3>
+                    <div class="rating">⭐ {{ result.rating }} / 5.0</div>
+                    <div class="info">📝 {{ result.review_count }} review</div>
+                    <div class="info">🏷️ {{ result.category }}</div>
+                    <div class="info">📍 {{ result.address }}</div>
+                    {% if result.link %}
+                    <div class="info">
+                        <a href="{{ result.link }}" target="_blank">Lihat di Maps →</a>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <script>
+        document.getElementById('scrapeForm').addEventListener('submit', function() {
+            document.getElementById('loading').classList.add('show');
+        });
+    </script>
+</body>
+</html>
