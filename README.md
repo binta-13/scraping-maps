@@ -24,7 +24,26 @@ python app.py
 
 3. Buka browser di `http://localhost:5000`
 
-## Deploy ke Netlify
+## Deploy
+
+### Deploy ke PythonAnywhere (Rekomendasi) ⭐
+
+PythonAnywhere sangat cocok untuk aplikasi ini karena:
+- ✅ Gratis untuk aplikasi web
+- ✅ Support Selenium dengan ChromeDriver
+- ✅ Tidak ada timeout limit
+- ✅ Python environment lengkap
+
+**Panduan lengkap**: Lihat [DEPLOY_PYTHONANYWHERE.md](DEPLOY_PYTHONANYWHERE.md)
+
+**Quick Start**:
+1. Daftar di [pythonanywhere.com](https://www.pythonanywhere.com)
+2. Upload code (via Git atau manual)
+3. Install dependencies: `pip3.10 install --user -r requirements-pythonanywhere.txt`
+4. Setup WSGI file (copy dari `wsgi.py`)
+5. Reload web app
+
+### Deploy ke Netlify
 
 ### Catatan Penting
 
@@ -37,13 +56,12 @@ Netlify Functions memiliki batasan:
 - Pro plan: 10 detik timeout  
 - Pro+ plan: 26 detik timeout
 
-**Rekomendasi**: Untuk aplikasi dengan Selenium, pertimbangkan platform lain seperti:
+**Rekomendasi**: Untuk aplikasi dengan Selenium, gunakan **PythonAnywhere** atau platform lain seperti:
 - Railway
 - Render
 - Heroku
-- PythonAnywhere
 
-### Langkah Deploy
+### Langkah Deploy ke Netlify
 
 1. **Install Netlify CLI** (opsional):
 ```bash
@@ -72,22 +90,26 @@ Atau melalui GitHub:
 
 ### Konfigurasi Environment Variables
 
-Jika diperlukan, tambahkan environment variables di Netlify dashboard:
-- Settings → Environment variables
+Jika diperlukan, tambahkan environment variables di platform dashboard:
+- Netlify: Settings → Environment variables
+- PythonAnywhere: Web tab → Environment variables
 
 ## Struktur Project
 
 ```
 .
-├── app.py                 # Flask application
-├── scraper.py             # Google Maps scraper
-├── requirements.txt       # Python dependencies
-├── netlify.toml          # Netlify configuration
+├── app.py                              # Flask application
+├── scraper.py                          # Google Maps scraper
+├── wsgi.py                             # WSGI entry point (untuk PythonAnywhere)
+├── requirements.txt                    # Python dependencies (untuk Netlify)
+├── requirements-pythonanywhere.txt     # Python dependencies (untuk PythonAnywhere)
+├── netlify.toml                        # Netlify configuration
+├── DEPLOY_PYTHONANYWHERE.md            # Panduan deploy ke PythonAnywhere
 ├── netlify/
 │   └── functions/
-│       └── server.py     # Netlify serverless function
+│       └── server.py                   # Netlify serverless function
 └── templates/
-    └── index.html        # Web interface
+    └── index.html                      # Web interface
 ```
 
 ## API Endpoints

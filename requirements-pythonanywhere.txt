@@ -1,0 +1,8 @@
+# Requirements untuk PythonAnywhere
+# File ini tidak termasuk serverless-wsgi karena tidak diperlukan di PythonAnywhere
+
+Flask==3.0.0
+selenium==4.15.2
+webdriver-manager==4.0.1
+requests==2.31.0
+
