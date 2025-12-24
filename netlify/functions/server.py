@@ -19,6 +19,18 @@ try:
     def handler(event, context):
         """Handler untuk Netlify Functions"""
         try:
+            # Pastikan path di-extract dengan benar dari event
+            # Netlify menyediakan path di event['path']
+            if 'path' not in event:
+                # Jika path tidak ada, gunakan rawPath atau pathParameters
+                if 'rawPath' in event:
+                    event['path'] = event['rawPath']
+                elif 'pathParameters' in event and event['pathParameters']:
+                    # Jika menggunakan path parameters
+                    event['path'] = event.get('requestContext', {}).get('http', {}).get('path', '/')
+                else:
+                    event['path'] = '/'
+            
             # Handle request menggunakan serverless-wsgi
             response = handle_request(app, event, context)
             return response

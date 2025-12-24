@@ -6,10 +6,12 @@
 [build.environment]
   PIP_CACHE_DIR = "/tmp/.pip-cache"
 
+# Redirect semua request ke serverless function
 [[redirects]]
   from = "/*"
   to = "/.netlify/functions/server"
   status = 200
+  force = true
 
 [functions]
   included_files = ["templates/**", "scraper.py", "app.py"]
