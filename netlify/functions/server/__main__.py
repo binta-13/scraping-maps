@@ -3,11 +3,61 @@ Netlify Function entry point - __main__.py
 """
 import sys
 import os
+import json
 
-# Tambahkan path ke parent directory untuk import server.py
-parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, parent_dir)
+# Tambahkan path ke root project
+root_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+sys.path.insert(0, root_path)
 
-# Import handler dari server.py di parent directory
-from server import handler
+# Set working directory
+os.chdir(root_path)
+
+try:
+    from serverless_wsgi import handle_request
+    from app import app
+    
+    def handler(event, context):
+        """Handler untuk Netlify Functions"""
+        try:
+            # Pastikan path di-extract dengan benar dari event
+            # Netlify menyediakan path di event['path']
+            if 'path' not in event:
+                # Jika path tidak ada, gunakan rawPath atau pathParameters
+                if 'rawPath' in event:
+                    event['path'] = event['rawPath']
+                elif 'pathParameters' in event and event['pathParameters']:
+                    # Jika menggunakan path parameters
+                    event['path'] = event.get('requestContext', {}).get('http', {}).get('path', '/')
+                else:
+                    event['path'] = '/'
+            
+            # Handle request menggunakan serverless-wsgi
+            response = handle_request(app, event, context)
+            return response
+        except Exception as e:
+            # Error handling untuk debugging
+            import traceback
+            error_msg = str(e)
+            traceback_str = traceback.format_exc()
+            print(f"Error in handler: {error_msg}")
+            print(traceback_str)
+            return {
+                'statusCode': 500,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({
+                    'error': error_msg,
+                    'traceback': traceback_str
+                })
+            }
+except ImportError as e:
+    # Fallback jika import gagal
+    def handler(event, context):
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'application/json'},
+            'body': json.dumps({
+                'error': f'Import error: {str(e)}',
+                'message': 'Failed to import Flask app or serverless-wsgi'
+            })
+        }
 
