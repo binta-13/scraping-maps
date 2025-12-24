@@ -19,15 +19,42 @@ try:
     def handler(event, context):
         """Handler untuk Netlify Functions"""
         try:
+            # Debug: print event untuk troubleshooting
+            print(f"Event received: {json.dumps(event, default=str)}")
+            
             # Pastikan path di-extract dengan benar dari event
-            # Netlify menyediakan path di event['path'] atau event['rawPath']
+            # Netlify menyediakan path di berbagai lokasi tergantung format event
             if 'path' not in event:
                 if 'rawPath' in event:
                     event['path'] = event['rawPath']
-                elif 'requestContext' in event and 'http' in event['requestContext']:
-                    event['path'] = event['requestContext']['http'].get('path', '/')
+                elif 'requestContext' in event:
+                    # Format Netlify Functions v2
+                    if 'http' in event['requestContext']:
+                        event['path'] = event['requestContext']['http'].get('path', '/')
+                    # Format Netlify Functions v1
+                    elif 'path' in event['requestContext']:
+                        event['path'] = event['requestContext']['path']
+                elif 'rawUrl' in event:
+                    # Extract path dari rawUrl
+                    from urllib.parse import urlparse
+                    parsed = urlparse(event['rawUrl'])
+                    event['path'] = parsed.path
                 else:
                     event['path'] = '/'
+            
+            # Pastikan query string juga di-handle
+            if 'queryStringParameters' in event and event['queryStringParameters']:
+                # Query string sudah di-handle oleh serverless-wsgi
+                pass
+            
+            # Pastikan HTTP method ada
+            if 'httpMethod' not in event:
+                if 'requestContext' in event and 'http' in event['requestContext']:
+                    event['httpMethod'] = event['requestContext']['http'].get('method', 'GET')
+                else:
+                    event['httpMethod'] = 'GET'
+            
+            print(f"Processing request: {event['httpMethod']} {event['path']}")
             
             # Handle request menggunakan serverless-wsgi
             response = handle_request(app, event, context)
