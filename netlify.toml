@@ -1,10 +1,9 @@
 [build]
-  command = "pip install -r requirements.txt"
+  command = "python -m pip install --upgrade pip && pip install -r requirements.txt"
   functions = "netlify/functions"
   publish = "public"
 
 [build.environment]
-  PYTHON_VERSION = "3.11"
   PIP_CACHE_DIR = "/tmp/.pip-cache"
 
 [[redirects]]
@@ -14,4 +13,3 @@
 
 [functions]
   included_files = ["templates/**", "scraper.py", "app.py"]
-
