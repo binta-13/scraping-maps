@@ -16,5 +16,13 @@ from app import app
 
 def handler(event, context):
     """Handler untuk Netlify Functions"""
-    return handle_request(app, event, context)
+    try:
+        return handle_request(app, event, context)
+    except Exception as e:
+        # Error handling untuk debugging
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'application/json'},
+            'body': str(e)
+        }
 
