@@ -1,0 +1,17 @@
+[build]
+  command = "pip install -r requirements.txt"
+  functions = "netlify/functions"
+  publish = "public"
+
+[build.environment]
+  PYTHON_VERSION = "3.11"
+  PIP_CACHE_DIR = "/tmp/.pip-cache"
+
+[[redirects]]
+  from = "/*"
+  to = "/.netlify/functions/server"
+  status = 200
+
+[functions]
+  included_files = ["templates/**", "scraper.py", "app.py"]
+
